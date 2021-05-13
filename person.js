@@ -5,7 +5,7 @@ function person() {
   /* including data.json file and parse data argument to users function  */
   fetch("./data.json")
     .then(response => response.json())
-    .then(data => users(data));
+    .then(data => getUsers(data));
 
   /*
     -reference to input field
@@ -24,7 +24,7 @@ function person() {
 
   
 
-  function users(data) {
+  function getUsers(data) {
 
   /* function to get users friends and create users friends HTML  */
   function getUserFriendsHTML(data) {
