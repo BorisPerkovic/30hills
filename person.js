@@ -142,6 +142,8 @@ function person() {
 
         /* check if users id exists, if it doesn't show message to user */
         if (num <= data.length) {
+
+          /* geting users data using value from input field and showing on screen */
           for (i in data) {
             if (data[i].id === num) {
               var usersFriends = data[i].friends;
