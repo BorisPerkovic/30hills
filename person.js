@@ -2,181 +2,135 @@
 /* person function activating on click search button  */
 function person() {
 
-  /* including data.json file and parse data argument to users function  */
-  fetch("./data.json")
-    .then(response => response.json())
-    .then(data => getUsers(data));
-
   /*
     -reference to input field
-    -reference to HTML element where to store users data
-    -array variable for users friends of friends
-    -one array variable for users friends of friends id
-    -array with non duplicates users friends of friends
+    -reference to HTML element where to store users datas
   */
   var input = document.querySelector("#usersId").value;
   var div = document.getElementById("response");
   var html = "";
-  var friendsOfFriends = [];
-  var friendsOfFriendsId = [];
-  var array = [];
-  
 
-  
+  /* including data.json file and parse data argument */
+  fetch("./data.json")
+    .then(response => response.json())
+    .then(data => {
 
-  function getUsers(data) {
+      var json = data;
 
-  /* function to get users friends and create users friends HTML  */
-  function getUserFriendsHTML(data) {
+      /* check if input field is an empty string, if it is show message to user */
+      if (input !== "") {
 
-    html += "<div class='col-md-4 mt-3 py-5'>";
-    html += "<h3>" + user + "'s friends:</h3>";
-    for (var i = 0; i < usersFriends.length; i++) {
-      for (j in data) {
-        if (usersFriends[i] === data[j].id) {
+        /* check if input field is number or string, if it is string show message to user */
+        if (isFinite(parseInt(input))) {
 
-          /* creating array of users friends  */
-          friendsOfFriends[friendsOfFriends.length] = data[j].friends;
-          html += "<p>" + data[j].firstName + " " + data[j].surname + "</p>";
+          /* check if users id exists, if it doesn't show message to user */
+          if (input <= json.length) {
 
-        }
-      }
-    }
-    html += "</div>";
+            /* create constructor function User */
+            function User(input, json) {
+              this.firstname = json[input - 1].firstName;
+              this.lastname = json[input - 1].surname;
+              this.usersID = json[input - 1].id;
+              this.usersFriends = json[input - 1].friends;
+              this.friendsOfFriends = [];
+              this.removeDuplicates = [];
 
-    return html;
-  }
+              /* creating users friends od friends  */
+              this.usersFriends.forEach((num) => {
+                this.friendsOfFriends.push(...json[num - 1].friends);
+              });
 
-  /* function to create one array with friends of friends id  */
-  function createFriendsOfFriendsIdList(friendsOfFriendsId) { 
+              /* removing duplicates from users friends od friends  */
+              this.friendsOfFriends.forEach((num, index) => {
+                if (!this.usersFriends.includes(num) && this.usersID !== this.friendsOfFriends[index]) {
+                  if (!this.removeDuplicates.includes(num)) {
+                    this.removeDuplicates.push(num);
+                  }
+                }
+              });
 
-    for (var i = 0; i < friendsOfFriends.length; i++) {
-      for(j = 0; j < friendsOfFriends[i].length; j++){
-        friendsOfFriendsId[friendsOfFriendsId.length] = friendsOfFriends[i][j];
-      }
-    }
-  }
+              /* getting users friends using method, HTML */
+              this.getUsersFriends = function (data) {
+                this.usersFriends.forEach(function (value) {
+                  html += "<p>" + data[value - 1].firstName + " " + data[value - 1].surname + "</p>";
+                });
+              };
 
-  /* function to get users friends of friends with non duplicates and create users friends of friends HTML  */
-  function getFriendsOfFriendsHTML(usersFriends , friendsOfFriendsId) {
-    html += "<div class='col-md-4 mt-3 py-5'>";
-    html += "<h3>" + user + "'s friends of friends:</h3>";
-    for (var i = 0; i < usersFriends.length; i++) {
-        for(var j = 0; j < friendsOfFriendsId.length; j++) {
-          if (usersFriends[i] !== friendsOfFriendsId[j] && usersId !== friendsOfFriendsId[j]) {
-            if (!usersFriends.includes(friendsOfFriendsId[j])) {
-              array[array.length] = friendsOfFriendsId[j];
-            }
-          
-          }
-      }
-    }
-  
-    /* function to get and create non duplicates */ 
-    function onlyUnique(value, index, self) {
-      return self.indexOf(value) === index;
-    }
-    var newArray =  array.filter(onlyUnique);
+              /* getting users friends of friends using method, HTML */
+              this.getUsersFriendsOfFriends = function (data) {
+                this.removeDuplicates.forEach(function (value) {
+                  html += "<p>" + data[value - 1].firstName + " " + data[value - 1].surname + "</p>";
+                });
+              };
 
-    for(var i = 0; i < newArray.length; i++) {
-      for(j in data) {
-        if(newArray[i] === data[j].id) {
-          html += "<p>" + data[j].firstName + " " + data[j].surname + "</p>";
-        }
-      }
-      
-    }
-    html += "</div>";
+              /* getting suggested friends for user using method, HTML */
+              this.getSuggestedFriends = function (json) {
+                this.counter = 0;
+                this.max = 0;
+                this.nextToMax = 0;
+                this.indexOfMax;
+                for (var i = 0; i < this.friendsOfFriends.length; i++) {
+                  this.counter = 0;
+                  if (this.friendsOfFriends[i] !== this.usersID) {
+                    for (var j = 0; j < this.friendsOfFriends.length; j++) {
+                      if (this.friendsOfFriends[i] === this.friendsOfFriends[j] && this.friendsOfFriends[j] !== this.usersID) {
+                        this.counter++;
+                      }
+                      if (this.max < this.counter) {
+                        this.nextToMax = this.max;
+                        this.max = this.counter;
+                        this.indexOfMax = this.friendsOfFriends[i];
+                      }
+                    }
+                  }
+                }
+                for (var i in data) {
+                  if (this.indexOfMax === json[i].id) {
+                    html += "<p>" + json[i].firstName + " " + json[i].surname + "</p>";
+                  }
+                }
+                
+              };
+            };
 
-    return html;
-  }
-    
-  /* function to get suggested friends and create suggested friends HTML  */
-  function getSuggestedFriendsHTML(array) {
-    html += "<div class='col-md-4 mt-3 py-5'>";
-    html += "<h3>Suggested friends for " + user + ":</h3>";
-    function suggestedFriends (array) {
-      var string = "";
-      var counter = 0;
-      var max = 0;
-      var nextToMax = 0;
-      var indexOfMax;
-      var indexOfNextToMax;
-      for (var i = 0; i < array.length; i++) {
-        counter = 0;
-        for(var j= 0; j < array.length; j++) {
-          if(array[i] === array[j]) {
-            counter++;
-          }
-          if(max < counter) {
-            nextToMax = max;
-            max = counter;
-            indexOfMax = array[i];
+            /* creating object User */
+            var user = new User(input, json);
+
+            /*====================================
+              showing information on screen 
+            =====================================*/
+            html += "<h4 class='text-center'>You choose: </h4>";
+            html += "<h4 class='text-center display-3'>" + user.firstname + " " + user.lastname + "</h4>";
+
+            /* HTML for users friends */
+            html += "<div class='col-md-4 mt-3 py-5'>";
+            html += "<h3>" + user.firstname + "'s friends:</h3>";
+            user.getUsersFriends(json);
+            html += "</div>";
+
+            /* HTML for users friends of friends */
+            html += "<div class='col-md-4 mt-3 py-5'>";
+            html += "<h3>" + user.firstname + "'s friends of friends:</h3>";
+            user.getUsersFriendsOfFriends(json);
+            html += "</div>";
+
+            /* HTML for users suggested friends */
+            html += "<div class='col-md-4 mt-3 py-5'>";
+            html += "<h3>Suggested friend for " + user.firstname + ":</h3>";
+            user.getSuggestedFriends(json);
+            html += "</div>";
           } else {
-            indexOfNextToMax = array[i];
+            html += "<p class='text-danger'>No User with " + input + ". Type ID from 1 to " + json.length + "</p>";
           }
-        }
-      }
-      for(i in data) {
-        if(indexOfMax === data[i].id || indexOfNextToMax === data[i].id) {
-          string += "<p>" + data[i].firstName +  " " + data[i].surname + "</p>";
-        }
-      }
-      return string;
-    }
-    html += "<p>" + suggestedFriends(array) + "</p>";
-    html += "</div>";
-  }
-
-  /*============
-   showing information on screen 
-  =============*/
-
-    /* check if input field is an empty string, if it is show message to user */
-    if (input !== "") {
-
-      var num = parseInt(input);
-
-      /* check if input field is number or string, if it is string show message to user */
-      if (isFinite(num)) {
-
-        /* check if users id exists, if it doesn't show message to user */
-        if (num <= data.length) {
-
-          /* geting users data using value from input field and showing on screen */
-          for (i in data) {
-            if (data[i].id === num) {
-              var usersFriends = data[i].friends;
-              var user = data[i].firstName;
-              var lastname = data[i].surname;
-              var usersId = data[i].id;
-              html += "<h4 class='text-center'>You choose: </h4>";
-              html += "<h4 class='text-center display-3'>" + user + " " + lastname + "</h4>";
-            }
-          }
-
-          getUserFriendsHTML(data);
-
-          createFriendsOfFriendsIdList(friendsOfFriendsId);
-          
-          getFriendsOfFriendsHTML(usersFriends , friendsOfFriendsId);          
-
-          getSuggestedFriendsHTML(array);
 
         } else {
-          html += "<p class='text-danger'>No user with ID " + num + " !! Please type number from 1 to " + data.length +"</p>";
+          html += "<p class='text-danger'>Only numbers are allowed!!</p>";
         }
 
       } else {
-        html += "<p class='text-danger'>Only numbers are allowed!!</p>";
+        html += "<p class='text-danger'>Empty fields. Please, type Users ID!!</p>";
       }
+      return div.innerHTML = html;
+    });
 
-    } else {
-      html += "<p class='text-danger'>Empty field. Please, enter users id!!</p>";
-    }
-
-
-    return div.innerHTML = html;
-  }
-
-}
+};
